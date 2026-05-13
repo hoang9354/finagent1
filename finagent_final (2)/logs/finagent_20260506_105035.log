@@ -1,0 +1,38 @@
+10:50:46  INFO      Collecting stock data: AAPL
+10:51:19  ERROR     $AAPL: possibly delisted; no price data found  (period=1y)
+10:51:19  WARNING     ✗ AAPL returned no data — skipping.
+10:51:19  INFO      Collecting stock data: MSFT
+10:51:29  ERROR     $MSFT: possibly delisted; no price data found  (period=1y)
+10:51:29  WARNING     ✗ MSFT returned no data — skipping.
+10:51:29  INFO      Collecting stock data: NVDA
+10:51:29  ERROR     $NVDA: possibly delisted; no price data found  (period=1y)
+10:51:29  WARNING     ✗ NVDA returned no data — skipping.
+10:51:29  INFO      Collecting stock data: GOOGL
+10:51:29  ERROR     $GOOGL: possibly delisted; no price data found  (period=1y)
+10:51:29  WARNING     ✗ GOOGL returned no data — skipping.
+10:51:29  INFO      Collecting macro data: Gold (GC=F)
+10:51:29  ERROR     $GC=F: possibly delisted; no price data found  (period=1y)
+10:51:29  WARNING     ✗ Gold returned no data — skipping.
+10:51:29  INFO      Collecting macro data: Oil_WTI (CL=F)
+10:51:29  ERROR     $CL=F: possibly delisted; no price data found  (period=1y)
+10:51:29  WARNING     ✗ Oil_WTI returned no data — skipping.
+10:51:29  INFO      Collecting macro data: USD_EUR (EURUSD=X)
+10:51:29  ERROR     $EURUSD=X: possibly delisted; no price data found  (period=1y)
+10:51:29  WARNING     ✗ USD_EUR returned no data — skipping.
+10:51:29  INFO      Collecting news: AAPL
+10:51:29  ERROR       ✗ Failed to fetch news for AAPL: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting news: MSFT
+10:51:29  ERROR       ✗ Failed to fetch news for MSFT: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting news: NVDA
+10:51:29  ERROR       ✗ Failed to fetch news for NVDA: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting news: GOOGL
+10:51:29  ERROR       ✗ Failed to fetch news for GOOGL: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 14 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting company info: AAPL
+10:51:29  ERROR       ✗ Failed to fetch info for AAPL: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting company info: MSFT
+10:51:29  ERROR       ✗ Failed to fetch info for MSFT: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting company info: NVDA
+10:51:29  ERROR       ✗ Failed to fetch info for NVDA: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  INFO      Collecting company info: GOOGL
+10:51:29  ERROR       ✗ Failed to fetch info for GOOGL: Failed to perform, curl: (7) Failed to connect to query1.finance.yahoo.com port 443 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+10:51:29  ERROR     No stock data collected. Check your internet connection.

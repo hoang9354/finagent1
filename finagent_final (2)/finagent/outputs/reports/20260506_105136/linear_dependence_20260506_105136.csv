@@ -1,0 +1,33 @@
+test,subject,reject_h0,interpretation,lb_statistic,lb_pvalue,lags_tested,dw_statistic,correlation,t_statistic,p_value,n_obs,best_lag,f_statistic,eg_statistic
+autocorrelation,AAPL,False,No significant autocorrelation at lag 10 — returns appear serially independent.,13.3158,0.206548,10.0,,,,,,,,
+autocorrelation,MSFT,False,No significant autocorrelation at lag 10 — returns appear serially independent.,9.2371,0.509762,10.0,,,,,,,,
+autocorrelation,NVDA,False,No significant autocorrelation at lag 10 — returns appear serially independent.,9.8596,0.452894,10.0,,,,,,,,
+autocorrelation,GOOGL,False,No significant autocorrelation at lag 10 — returns appear serially independent.,2.5158,0.990644,10.0,,,,,,,,
+durbin_watson,AAPL,False,DW=1.7883 — No significant autocorrelation. Returns are consistent with serial independence.,,,,1.7883,,,,,,,
+durbin_watson,MSFT,False,DW=1.9195 — No significant autocorrelation. Returns are consistent with serial independence.,,,,1.9195,,,,,,,
+durbin_watson,NVDA,False,DW=1.9603 — No significant autocorrelation. Returns are consistent with serial independence.,,,,1.9603,,,,,,,
+durbin_watson,GOOGL,False,DW=1.8126 — No significant autocorrelation. Returns are consistent with serial independence.,,,,1.8126,,,,,,,
+cross_correlation,AAPL/MSFT,True,r=+0.1569 *   (p<0.05) — Significant linear co-movement detected.,,,,,0.1569,2.5025,0.012975,250.0,,,
+cross_correlation,AAPL/NVDA,True,r=+0.2549 *** (p<0.001) — Significant linear co-movement detected.,,,,,0.2549,4.1513,4.5e-05,250.0,,,
+cross_correlation,AAPL/GOOGL,True,r=+0.3248 *** (p<0.001) — Significant linear co-movement detected.,,,,,0.3248,5.4082,0.0,250.0,,,
+cross_correlation,MSFT/NVDA,True,r=+0.4045 *** (p<0.001) — Significant linear co-movement detected.,,,,,0.4045,6.9655,0.0,250.0,,,
+cross_correlation,MSFT/GOOGL,False,r=+0.1081 (n.s.) — No significant linear relationship.,,,,,0.1081,1.7129,0.087985,250.0,,,
+cross_correlation,NVDA/GOOGL,True,r=+0.2420 *** (p<0.001) — Significant linear co-movement detected.,,,,,0.242,3.9273,0.000111,250.0,,,
+granger_causality,AAPL → MSFT,False,AAPL does NOT Granger-cause MSFT (best p=0.138775 at lag 3).,,,,,,,0.138775,,3.0,1.8498,
+granger_causality,AAPL → NVDA,False,AAPL does NOT Granger-cause NVDA (best p=0.451247 at lag 5).,,,,,,,0.451247,,5.0,0.9471,
+granger_causality,AAPL → GOOGL,False,AAPL does NOT Granger-cause GOOGL (best p=0.135565 at lag 1).,,,,,,,0.135565,,1.0,2.2423,
+granger_causality,MSFT → AAPL,False,MSFT does NOT Granger-cause AAPL (best p=0.131489 at lag 5).,,,,,,,0.131489,,5.0,1.7168,
+granger_causality,MSFT → NVDA,True,"MSFT DOES Granger-cause NVDA at lag 4 (F=3.1308, p=0.015555 *   (p<0.05)).",,,,,,,0.015555,,4.0,3.1308,
+granger_causality,MSFT → GOOGL,False,MSFT does NOT Granger-cause GOOGL (best p=0.533002 at lag 1).,,,,,,,0.533002,,1.0,0.3898,
+granger_causality,NVDA → AAPL,False,NVDA does NOT Granger-cause AAPL (best p=0.518190 at lag 1).,,,,,,,0.51819,,1.0,0.4187,
+granger_causality,NVDA → MSFT,True,"NVDA DOES Granger-cause MSFT at lag 1 (F=4.0852, p=0.044344 *   (p<0.05)).",,,,,,,0.044344,,1.0,4.0852,
+granger_causality,NVDA → GOOGL,False,NVDA does NOT Granger-cause GOOGL (best p=0.560436 at lag 2).,,,,,,,0.560436,,2.0,0.5804,
+granger_causality,GOOGL → AAPL,False,GOOGL does NOT Granger-cause AAPL (best p=0.256143 at lag 1).,,,,,,,0.256143,,1.0,1.2955,
+granger_causality,GOOGL → MSFT,False,GOOGL does NOT Granger-cause MSFT (best p=0.673284 at lag 5).,,,,,,,0.673284,,5.0,0.6349,
+granger_causality,GOOGL → NVDA,False,GOOGL does NOT Granger-cause NVDA (best p=0.671861 at lag 3).,,,,,,,0.671861,,3.0,0.5157,
+cointegration,AAPL/MSFT,False,AAPL and MSFT are NOT cointegrated (p=0.6640) — no stable long-run linear relationship detected.,,,,,,,0.663961,,,,-1.7281
+cointegration,AAPL/NVDA,False,AAPL and NVDA are NOT cointegrated (p=0.2475) — no stable long-run linear relationship detected.,,,,,,,0.247527,,,,-2.5738
+cointegration,AAPL/GOOGL,False,AAPL and GOOGL are NOT cointegrated (p=0.2679) — no stable long-run linear relationship detected.,,,,,,,0.267853,,,,-2.5257
+cointegration,MSFT/NVDA,False,MSFT and NVDA are NOT cointegrated (p=0.9038) — no stable long-run linear relationship detected.,,,,,,,0.903811,,,,-0.9949
+cointegration,MSFT/GOOGL,False,MSFT and GOOGL are NOT cointegrated (p=0.5963) — no stable long-run linear relationship detected.,,,,,,,0.596266,,,,-1.8678
+cointegration,NVDA/GOOGL,True,NVDA and GOOGL ARE cointegrated *   (p<0.05) — they share a long-run linear equilibrium. A mean-reversion (pairs trading) strategy may be viable.,,,,,,,0.031188,,,,-3.5138
