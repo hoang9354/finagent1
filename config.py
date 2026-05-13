@@ -10,7 +10,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─── Assets ───────────────────────────────────────────────────────────────────
-STOCK_TICKERS    = ["AAPL", "MSFT", "NVDA", "GOOGL"]   # Target stocks to analyse
+STOCK_TICKERS    = ["AAPL", "MSFT", "NVDA", "GOOGL"]
+NEWS_QUERIES = {
+    "AAPL": "Apple stock AAPL",
+    "MSFT": "Microsoft stock MSFT",
+    "NVDA": "Nvidia stock NVDA",
+    "GOOGL": "Alphabet Google stock GOOGL",
+} # Target stocks to analyse
 BENCHMARK_TICKER = "^GSPC"                               # S&P 500 as benchmark
 MACRO_SYMBOLS    = {                                     # Macro / commodity proxies
     "Gold":    "GC=F",

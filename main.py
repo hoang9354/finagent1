@@ -56,7 +56,7 @@ from modules.visualization import (
     chart_cumulative_returns,
 )
 from modules.ai_analysis import run_ai_analysis
-
+from modules.news_collection import fetch_newsapi_headlines
 
 # ─── Directory bootstrap ──────────────────────────────────────────────────────
 
@@ -126,9 +126,12 @@ def phase_collect(demo: bool = False, run_id: str = ""):
         print("\n  Company info : fetching profiles…")
         company_info = fetch_company_info(tickers=cfg.STOCK_TICKERS)
         _check(f"{len(company_info)} company profiles fetched")
-
+        
+        print('\n  Fetching additional news from NewsAPI (independent source)…')
+        newsapi = fetch_newsapi_headlines(query=cfg.NEWS_QUERIES, days_back=7, max_articles=5)
+        _check(f"{sum(len(v) for v in newsapi)} headlines from NewsAPI across {len(newsapi)} tickers")
     print(f"\n  Collection complete in {time.time() - t0:.1f}s")
-    return stock_data, macro_data, news_data, company_info
+    return stock_data, macro_data, news_data, company_info, newsapi
 
 
 # ─── Phase 2 — Cleaning ──────────────────────────────────────────────────────
@@ -277,7 +280,7 @@ def main():
 
     _bootstrap_dirs()
 
-    stock_data, macro_data, news_data, company_info = phase_collect(demo=args.demo, run_id=run_id)
+    stock_data, macro_data, news_data, company_info, newsapi = phase_collect(demo=args.demo, run_id=run_id)
     if not stock_data:
         logger.error("No stock data collected. Check your internet connection.")
         sys.exit(1)
