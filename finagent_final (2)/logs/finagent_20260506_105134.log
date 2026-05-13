@@ -1,0 +1,101 @@
+10:51:36  INFO      Collecting stock data: AAPL
+10:51:37  INFO        ✓ AAPL: 251 rows  [2025-05-06 → 2026-05-05]
+10:51:37  INFO      Collecting stock data: MSFT
+10:51:37  INFO        ✓ MSFT: 251 rows  [2025-05-06 → 2026-05-05]
+10:51:38  INFO      Collecting stock data: NVDA
+10:51:38  INFO        ✓ NVDA: 251 rows  [2025-05-06 → 2026-05-05]
+10:51:38  INFO      Collecting stock data: GOOGL
+10:51:38  INFO        ✓ GOOGL: 251 rows  [2025-05-06 → 2026-05-05]
+10:51:39  INFO      Collecting macro data: Gold (GC=F)
+10:51:39  INFO        ✓ Gold: 253 rows
+10:51:39  INFO      Collecting macro data: Oil_WTI (CL=F)
+10:51:39  INFO        ✓ Oil_WTI: 253 rows
+10:51:40  INFO      Collecting macro data: USD_EUR (EURUSD=X)
+10:51:40  INFO        ✓ USD_EUR: 260 rows
+10:51:40  INFO      Collecting news: AAPL
+10:51:41  INFO        ✓ AAPL: 5 headlines
+10:51:41  INFO      Collecting news: MSFT
+10:51:41  INFO        ✓ MSFT: 5 headlines
+10:51:42  INFO      Collecting news: NVDA
+10:51:42  INFO        ✓ NVDA: 5 headlines
+10:51:42  INFO      Collecting news: GOOGL
+10:51:43  INFO        ✓ GOOGL: 5 headlines
+10:51:43  INFO      Collecting company info: AAPL
+10:51:44  INFO        ✓ AAPL: Technology / Consumer Electronics
+10:51:44  INFO      Collecting company info: MSFT
+10:51:45  INFO        ✓ MSFT: Technology / Software - Infrastructure
+10:51:45  INFO      Collecting company info: NVDA
+10:51:46  INFO        ✓ NVDA: Technology / Semiconductors
+10:51:46  INFO      Collecting company info: GOOGL
+10:51:46  INFO        ✓ GOOGL: Communication Services / Internet Content & Information
+10:51:47  INFO      Cleaning: AAPL
+10:51:47  INFO        AAPL: filled 0 missing values
+10:51:47  INFO        AAPL: flagged 3 outliers in Daily_Return (|z| > 3.0)
+10:51:47  INFO        AAPL: ✓ cleaned  (251 rows, 14 cols)
+10:51:47  INFO        Saved cleaned → c:\Users\Admin\Downloads\finagent_final (2)\finagent\data\processed\AAPL_clean.csv
+10:51:47  INFO      Cleaning: MSFT
+10:51:47  INFO        MSFT: filled 0 missing values
+10:51:47  INFO        MSFT: flagged 3 outliers in Daily_Return (|z| > 3.0)
+10:51:47  INFO        MSFT: ✓ cleaned  (251 rows, 14 cols)
+10:51:47  INFO        Saved cleaned → c:\Users\Admin\Downloads\finagent_final (2)\finagent\data\processed\MSFT_clean.csv
+10:51:47  INFO      Cleaning: NVDA
+10:51:47  INFO        NVDA: filled 0 missing values
+10:51:47  INFO        NVDA: flagged 1 outliers in Daily_Return (|z| > 3.0)
+10:51:47  INFO        NVDA: ✓ cleaned  (251 rows, 14 cols)
+10:51:47  INFO        Saved cleaned → c:\Users\Admin\Downloads\finagent_final (2)\finagent\data\processed\NVDA_clean.csv
+10:51:47  INFO      Cleaning: GOOGL
+10:51:47  INFO        GOOGL: filled 0 missing values
+10:51:47  INFO        GOOGL: flagged 4 outliers in Daily_Return (|z| > 3.0)
+10:51:47  INFO        GOOGL: ✓ cleaned  (251 rows, 14 cols)
+10:51:47  INFO        Saved cleaned → c:\Users\Admin\Downloads\finagent_final (2)\finagent\data\processed\GOOGL_clean.csv
+10:51:47  INFO      Running linear dependence tests on 4 assets…
+10:51:47  INFO      Test 1 — Ljung-Box Autocorrelation (lags=10)
+10:51:47  INFO        AAPL: LB=13.3158  p=0.206548      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        MSFT: LB=9.2371  p=0.509762      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        NVDA: LB=9.8596  p=0.452894      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        GOOGL: LB=2.5158  p=0.990644      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO      Test 2 — Durbin-Watson First-Order Autocorrelation
+10:51:47  INFO        AAPL: DW=1.7883  → No significant autocorrelation
+10:51:47  INFO        MSFT: DW=1.9195  → No significant autocorrelation
+10:51:47  INFO        NVDA: DW=1.9603  → No significant autocorrelation
+10:51:47  INFO        GOOGL: DW=1.8126  → No significant autocorrelation
+10:51:47  INFO      Test 3 — Pearson Cross-Correlation with Significance
+10:51:47  INFO        AAPL/MSFT: r=+0.1569  t=2.5025  p=0.012975  *   (p<0.05)  → REJECT H₀
+10:51:47  INFO        AAPL/NVDA: r=+0.2549  t=4.1513  p=0.000045  *** (p<0.001)  → REJECT H₀
+10:51:47  INFO        AAPL/GOOGL: r=+0.3248  t=5.4082  p=0.000000  *** (p<0.001)  → REJECT H₀
+10:51:47  INFO        MSFT/NVDA: r=+0.4045  t=6.9655  p=0.000000  *** (p<0.001)  → REJECT H₀
+10:51:47  INFO        MSFT/GOOGL: r=+0.1081  t=1.7129  p=0.087985      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        NVDA/GOOGL: r=+0.2420  t=3.9273  p=0.000111  *** (p<0.001)  → REJECT H₀
+10:51:47  INFO      Test 4 — Granger Causality (max_lag=5)
+10:51:47  INFO        AAPL → MSFT: F=1.8498  p=0.138775  best_lag=3      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        AAPL → NVDA: F=0.9471  p=0.451247  best_lag=5      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        AAPL → GOOGL: F=2.2423  p=0.135565  best_lag=1      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        MSFT → AAPL: F=1.7168  p=0.131489  best_lag=5      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        MSFT → NVDA: F=3.1308  p=0.015555  best_lag=4  *   (p<0.05)  → REJECT H₀
+10:51:47  INFO        MSFT → GOOGL: F=0.3898  p=0.533002  best_lag=1      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        NVDA → AAPL: F=0.4187  p=0.518190  best_lag=1      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        NVDA → MSFT: F=4.0852  p=0.044344  best_lag=1  *   (p<0.05)  → REJECT H₀
+10:51:47  INFO        NVDA → GOOGL: F=0.5804  p=0.560436  best_lag=2      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        GOOGL → AAPL: F=1.2955  p=0.256143  best_lag=1      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        GOOGL → MSFT: F=0.6349  p=0.673284  best_lag=5      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        GOOGL → NVDA: F=0.5157  p=0.671861  best_lag=3      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO      Test 5 — Engle-Granger Cointegration
+10:51:47  INFO        AAPL/MSFT: EG=-1.7281  p=0.663961      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        AAPL/NVDA: EG=-2.5738  p=0.247527      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        AAPL/GOOGL: EG=-2.5257  p=0.267853      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        MSFT/NVDA: EG=-0.9949  p=0.903811      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        MSFT/GOOGL: EG=-1.8678  p=0.596266      (n.s.)  → FAIL TO REJECT H₀
+10:51:47  INFO        NVDA/GOOGL: EG=-3.5138  p=0.031188  *   (p<0.05)  → REJECT H₀
+10:51:47  INFO      Linear dependence results saved → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\reports\20260506_105136\linear_dependence_20260506_105136.csv
+10:51:47  INFO      Linear dependence tests complete.
+10:51:48  INFO        Saved chart → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\charts\20260506_105136\chart1_price_volume.png
+10:51:48  INFO        Saved chart → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\charts\20260506_105136\chart2_correlation_heatmap.png
+10:51:49  INFO        Saved chart → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\charts\20260506_105136\chart3_return_distribution.png
+10:51:49  INFO        Saved chart → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\charts\20260506_105136\chart4_rolling_stats.png
+10:51:50  INFO        Saved chart → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\charts\20260506_105136\chart5_cumulative_returns.png
+10:51:50  INFO      Building data context for Groq analysis…
+10:51:50  INFO        Context: ~1506 words (~1957 tokens)
+10:51:50  INFO      Calling Groq (llama-3.3-70b-versatile) for financial analysis…
+10:52:00  INFO      HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+10:52:00  INFO      Markdown report saved → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\reports\20260506_105136\ai_analysis_20260506_105136.md
+10:52:00  INFO      Word report saved → c:\Users\Admin\Downloads\finagent_final (2)\finagent\outputs\reports\20260506_105136\FinAgent_Report_20260506_105200.docx
