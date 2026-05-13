@@ -14,7 +14,7 @@ import logging
 import os
 import time
 from typing import Dict, List, Optional
-
+import functools
 import pandas as pd
 import yfinance as yf
 
