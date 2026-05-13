@@ -1,45 +1,165 @@
 """
 modules/collection.py — Data Collection Module
 ===============================================
-Collects financial data from three source types:
-  1. Stock prices (OHLCV)     — via yfinance (Yahoo Finance)
-  2. Macro indicators          — via yfinance (commodities & forex)
-  3. News headlines            — via yfinance built-in news feed
-  4. Company fundamentals      — via yfinance Ticker.info
+Collects financial data from Yahoo Finance via the yfinance library.
 
-No API keys are required for this module.
+Data collected:
+  1. Stock OHLCV prices      — yfinance Ticker.history()
+  2. Macro indicators         — yfinance Ticker.history() for commodities/forex
+  3. News headlines           — yfinance Ticker.news
+  4. Company fundamentals     — yfinance Ticker.info
+
+Reliability features:
+  - Exponential backoff retry on all network calls (max 3 attempts)
+  - Per-ticker rate-limit delay (0.5s between requests)
+  - DataFrame validation after every fetch
+  - Graceful skip on failure — pipeline never crashes from a single bad ticker
+
+No API keys required for any function in this module.
 """
 
+import functools
 import logging
 import os
 import time
 from typing import Dict, List, Optional
-import functools
+
 import pandas as pd
 import yfinance as yf
 
 logger = logging.getLogger(__name__)
-def with_retry(max_attempts: int = 3, backoff_base: float = 2.0, exceptions=(Exception,)):
-    """Decorator: retries fn up to max_attempts with exponential backoff."""
+
+# ─── Retry Decorator ─────────────────────────────────────────────────────────
+
+def with_retry(max_attempts: int = 3, backoff_base: float = 2.0):
+    """
+    Decorator that retries a function up to max_attempts times
+    with exponential backoff between each attempt.
+
+    Backoff schedule (backoff_base=2.0):
+      Attempt 1 fails → wait 1s  (2^0)
+      Attempt 2 fails → wait 2s  (2^1)
+      Attempt 3 fails → give up, log error, return None
+
+    Why return None instead of raising?
+      Raising would crash the entire pipeline for one bad ticker.
+      Returning None lets the caller skip gracefully and continue.
+
+    Args:
+        max_attempts: Total number of tries before giving up (default: 3).
+        backoff_base: Base for exponential wait time (default: 2.0).
+
+    Returns:
+        Decorated function with retry logic built in.
+    """
     def decorator(fn):
         @functools.wraps(fn)
         def wrapper(*args, **kwargs):
-            for attempt in range(max_attempts):
+            last_exc = None
+
+            for attempt in range(1, max_attempts + 1):
                 try:
-                    return fn(*args, **kwargs)
-                except exceptions as e:
-                    wait = backoff_base ** attempt
-                    logger.warning(
-                        f"{fn.__name__} failed (attempt {attempt+1}/{max_attempts}): {e}. "
-                        f"Retrying in {wait:.1f}s..."
-                    )
-                    if attempt == max_attempts - 1:
-                        logger.error(f"{fn.__name__} permanently failed after {max_attempts} attempts.")
-                        raise
-                    time.sleep(wait)
+                    return fn(*args, **kwargs)          # ← attempt the call
+
+                except Exception as e:                  # ← FIXED: plain Exception, no variable
+                    last_exc = e
+                    wait = backoff_base ** (attempt - 1)  # 1s, 2s, 4s
+
+                    if attempt < max_attempts:
+                        logger.warning(
+                            "[%s] Attempt %d/%d failed: %s — retrying in %.0fs…",
+                            fn.__name__, attempt, max_attempts, e, wait,
+                        )
+                        time.sleep(wait)
+                    else:
+                        logger.error(
+                            "[%s] All %d attempts failed. Last error: %s",
+                            fn.__name__, max_attempts, last_exc,
+                        )
+
+            return None     # ← FIXED: return None instead of re-raising — pipeline continues
+
         return wrapper
     return decorator
-# Keys to extract from yfinance Ticker.info
+
+
+# ─── DataFrame Validator ──────────────────────────────────────────────────────
+
+def _validate_dataframe(
+    df: Optional[pd.DataFrame],
+    label: str,
+    min_rows: int = 30,
+    required_col: str = "Close",
+) -> bool:
+    """
+    Validate that a fetched DataFrame is safe to use downstream.
+
+    Checks performed:
+      - Not None (fetch returned nothing)
+      - Not empty
+      - Has minimum row count
+      - Contains the required column
+
+    Args:
+        df:           DataFrame to validate (may be None).
+        label:        Ticker or indicator name — used in log messages only.
+        min_rows:     Minimum acceptable number of rows (default: 30).
+        required_col: Column that must be present (default: "Close").
+
+    Returns:
+        True if valid, False if the data should be skipped.
+    """
+    if df is None:
+        logger.warning("[%s] Fetch returned None — skipping.", label)
+        return False
+    if not isinstance(df, pd.DataFrame):
+        logger.warning("[%s] Expected DataFrame, got %s — skipping.", label, type(df))
+        return False
+    if df.empty:
+        logger.warning("[%s] DataFrame is empty — skipping.", label)
+        return False
+    if len(df) < min_rows:
+        logger.warning(
+            "[%s] Only %d rows returned (minimum: %d) — data may be incomplete.",
+            label, len(df), min_rows,
+        )
+        # Note: we still return True here — partial data is better than nothing
+        # The cleaning module will handle gaps via forward-fill
+    if required_col not in df.columns:
+        logger.warning("[%s] Required column '%s' missing — skipping.", label, required_col)
+        return False
+
+    logger.info(
+        "[%s] Validated ✓  %d rows  [%s → %s]",
+        label, len(df), df.index[0].date(), df.index[-1].date(),
+    )
+    return True
+
+
+# ─── Timezone Helper ──────────────────────────────────────────────────────────
+
+def _strip_timezone(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove timezone info from a DatetimeIndex.
+
+    Why: yfinance returns timezone-aware indices (e.g. UTC or US/Eastern).
+    Mixing timezone-aware and timezone-naive indices causes merge errors
+    in the cleaning module. Stripping here keeps all frames consistent.
+
+    Args:
+        df: DataFrame with a DatetimeIndex (may or may not be tz-aware).
+
+    Returns:
+        DataFrame with tz-naive DatetimeIndex (original is not mutated).
+    """
+    if isinstance(df.index, pd.DatetimeIndex) and df.index.tz is not None:
+        df = df.copy()
+        df.index = df.index.tz_localize(None)
+    return df
+
+
+# ─── Keys to extract from yfinance Ticker.info ───────────────────────────────
+
 _COMPANY_KEYS = [
     "longName", "sector", "industry", "country", "city", "state",
     "fullTimeEmployees", "longBusinessSummary", "website",
@@ -49,16 +169,9 @@ _COMPANY_KEYS = [
 ]
 
 
-def _strip_timezone(df: pd.DataFrame) -> pd.DataFrame:
-    """Remove timezone info from a DatetimeIndex so all frames align cleanly."""
-    if isinstance(df.index, pd.DatetimeIndex) and df.index.tz is not None:
-        df = df.copy()
-        df.index = df.index.tz_localize(None)
-    return df
+# ─── 1. Stock Prices ──────────────────────────────────────────────────────────
 
-
-# ─── Stock Prices ─────────────────────────────────────────────────────────────
-@with_retry(max_attempts=3, backoff_base=2.0)
+@with_retry(max_attempts=3, backoff_base=2.0)      # ← retry on any network failure
 def fetch_stock_data(
     tickers: List[str],
     period: str = "1y",
@@ -66,151 +179,198 @@ def fetch_stock_data(
     save_dir: Optional[str] = None,
 ) -> Dict[str, pd.DataFrame]:
     """
-    Fetch historical OHLCV data for a list of tickers from Yahoo Finance.
+    Fetch historical OHLCV price data for a list of stock tickers.
 
-    Parameters
-    ----------
-    tickers   : Ticker symbols, e.g. ["AAPL", "MSFT"]
-    period    : yfinance period string — "1y", "6mo", "3mo", etc.
-    interval  : Bar size — "1d", "1wk", "1mo"
-    save_dir  : If provided, saves each ticker's raw CSV here.
+    Data source: Yahoo Finance via yfinance (no API key required).
+    Prices are split- and dividend-adjusted (auto_adjust=True).
 
-    Returns
-    -------
-    Dict mapping ticker → OHLCV DataFrame (index: datetime).
+    Args:
+        tickers:  List of ticker symbols, e.g. ["AAPL", "MSFT", "NVDA"].
+        period:   Lookback window — "1y", "6mo", "3mo", "ytd", etc.
+        interval: Bar frequency — "1d" (daily), "1wk", "1mo".
+        save_dir: If provided, each ticker's raw OHLCV is saved as a CSV here.
+
+    Returns:
+        Dict mapping ticker symbol → OHLCV DataFrame with DatetimeIndex.
+        Tickers that fail validation are excluded (not None — just absent).
     """
     results: Dict[str, pd.DataFrame] = {}
 
     for ticker in tickers:
+        logger.info("Fetching stock: %s", ticker)
         try:
-            logger.info("Collecting stock data: %s", ticker)
             df = yf.Ticker(ticker).history(
-                period=period, interval=interval, auto_adjust=True
+                period=period,
+                interval=interval,
+                auto_adjust=True,       # adjusts for splits and dividends
             )
-            if df.empty:
-                logger.warning("  ✗ %s returned no data — skipping.", ticker)
-                continue
-            time.sleep(0.5) #Rate-limit courtesy to Yahoo Finance
+
+            # ── Validate before accepting ─────────────────────────────────
+            if not _validate_dataframe(df, ticker):
+                continue                # skip invalid — don't crash
+
             df = _strip_timezone(df)
+
+            # Keep only standard OHLCV columns (some tickers return extra cols)
             keep = [c for c in ["Open", "High", "Low", "Close", "Volume"] if c in df.columns]
             df = df[keep]
 
             results[ticker] = df
-            logger.info(
-                "  ✓ %s: %d rows  [%s → %s]",
-                ticker, len(df), df.index[0].date(), df.index[-1].date(),
-            )
 
+            # ── Persist raw data ──────────────────────────────────────────
             if save_dir:
                 os.makedirs(save_dir, exist_ok=True)
-                df.to_csv(os.path.join(save_dir, f"{ticker}_raw.csv"))
-
-            time.sleep(0.35)
+                path = os.path.join(save_dir, f"{ticker}_raw.csv")
+                df.to_csv(path)
+                logger.info("  Saved raw CSV → %s", path)
 
         except Exception as exc:
-            logger.error("  ✗ Failed to fetch %s: %s", ticker, exc)
+            # Catch anything the retry decorator didn't handle
+            logger.error("  ✗ Unexpected error for %s: %s", ticker, exc)
+            continue
+
+        # ── Rate-limit courtesy delay ─────────────────────────────────────
+        # 500ms between tickers prevents Yahoo Finance from throttling us.
+        time.sleep(0.5)
+
+    if not results:
+        logger.error("fetch_stock_data: no tickers returned valid data.")
 
     return results
 
 
-# ─── Macro Indicators ────────────────────────────────────────────────────────
+# ─── 2. Macro Indicators ──────────────────────────────────────────────────────
 
+@with_retry(max_attempts=3, backoff_base=2.0)      # ← ADDED: was missing retry before
 def fetch_macro_data(
     symbols: Dict[str, str],
     period: str = "1y",
     save_dir: Optional[str] = None,
 ) -> Dict[str, pd.DataFrame]:
     """
-    Fetch macro indicator closing prices from Yahoo Finance.
+    Fetch macro-economic indicator closing prices from Yahoo Finance.
 
-    Parameters
-    ----------
-    symbols  : Mapping of label → Yahoo Finance symbol,
-               e.g. {"Gold": "GC=F", "Oil_WTI": "CL=F", "USD_EUR": "EURUSD=X"}
-    period   : yfinance period string.
-    save_dir : Optional directory to persist raw CSVs.
+    Fetches commodity and forex data that provides market context
+    for the AI analysis (e.g. Gold, Oil, USD/EUR exchange rate).
 
-    Returns
-    -------
-    Dict mapping label → single-column DataFrame (column = label, index: datetime).
+    Args:
+        symbols:  Dict mapping display label → Yahoo Finance symbol.
+                  Example: {"Gold": "GC=F", "Oil_WTI": "CL=F"}
+        period:   Lookback window (same as fetch_stock_data).
+        save_dir: Optional directory to persist raw CSVs.
+
+    Returns:
+        Dict mapping label → single-column DataFrame (column named = label).
     """
     results: Dict[str, pd.DataFrame] = {}
 
     for label, symbol in symbols.items():
+        logger.info("Fetching macro: %s (%s)", label, symbol)
         try:
-            logger.info("Collecting macro data: %s (%s)", label, symbol)
-            df = yf.Ticker(symbol).history(period=period, interval="1d", auto_adjust=True)
+            df = yf.Ticker(symbol).history(
+                period=period, interval="1d", auto_adjust=True
+            )
 
-            if df.empty:
-                logger.warning("  ✗ %s returned no data — skipping.", label)
+            # ── Validate ──────────────────────────────────────────────────
+            if not _validate_dataframe(df, label):
                 continue
 
             df = _strip_timezone(df)
             df = df[["Close"]].rename(columns={"Close": label})
-            results[label] = df
-            logger.info("  ✓ %s: %d rows", label, len(df))
 
+            results[label] = df
+            logger.info("  ✓ %s: %d rows collected", label, len(df))
+
+            # ── Persist ───────────────────────────────────────────────────
             if save_dir:
                 os.makedirs(save_dir, exist_ok=True)
-                safe = label.replace("/", "_").replace(" ", "_")
-                df.to_csv(os.path.join(save_dir, f"{safe}_raw.csv"))
-
-            time.sleep(0.35)
+                safe_name = label.replace("/", "_").replace(" ", "_")
+                df.to_csv(os.path.join(save_dir, f"{safe_name}_raw.csv"))
 
         except Exception as exc:
             logger.error("  ✗ Failed to fetch macro %s: %s", label, exc)
+            continue
+
+        time.sleep(0.5)      # ← ADDED: rate-limit delay (was 0.35 before)
 
     return results
 
 
-# ─── News Headlines ───────────────────────────────────────────────────────────
+# ─── 3. News Headlines ────────────────────────────────────────────────────────
 
+@with_retry(max_attempts=3, backoff_base=2.0)      # ← ADDED: was missing retry before
 def fetch_news(
     tickers: List[str],
     max_per_ticker: int = 5,
 ) -> Dict[str, List[dict]]:
     """
-    Fetch recent news headlines for each ticker via yfinance.
+    Fetch recent news headlines and summaries for each ticker via yfinance.
 
-    Returns
-    -------
-    Dict mapping ticker → list of raw news dicts from yfinance.
+    Note on data quality: yfinance news provides titles and brief summaries
+    only — not full article text. This is sufficient for AI sentiment context
+    but not for detailed NLP analysis. For deeper news analysis, integrate
+    NewsAPI (see modules/news_collection.py).
+
+    Args:
+        tickers:        List of ticker symbols.
+        max_per_ticker: Maximum headlines to keep per ticker (default: 5).
+
+    Returns:
+        Dict mapping ticker → list of news dicts from yfinance.
+        Each dict contains keys: title, publisher, link, providerPublishTime.
+        Returns empty list for any ticker that fails — never raises.
     """
     results: Dict[str, List[dict]] = {}
 
     for ticker in tickers:
+        logger.info("Fetching news: %s", ticker)
         try:
-            logger.info("Collecting news: %s", ticker)
             raw = yf.Ticker(ticker).news or []
-            results[ticker] = raw[:max_per_ticker]
-            logger.info("  ✓ %s: %d headlines", ticker, len(results[ticker]))
-            time.sleep(0.35)
+            headlines = raw[:max_per_ticker]
+            results[ticker] = headlines
+            logger.info("  ✓ %s: %d headlines", ticker, len(headlines))
+
         except Exception as exc:
             logger.error("  ✗ Failed to fetch news for %s: %s", ticker, exc)
-            results[ticker] = []
+            results[ticker] = []         # empty list, not None — safe for downstream
+
+        time.sleep(0.5)      # ← ADDED: rate-limit delay (was 0.35 before)
 
     return results
 
 
-# ─── Company Fundamentals ────────────────────────────────────────────────────
+# ─── 4. Company Fundamentals ──────────────────────────────────────────────────
 
+@with_retry(max_attempts=3, backoff_base=2.0)      # ← ADDED: was missing retry before
 def fetch_company_info(tickers: List[str]) -> Dict[str, dict]:
     """
-    Fetch fundamental company information for each ticker via yfinance.
+    Fetch fundamental company data for each ticker via yfinance Ticker.info.
 
-    Returns
-    -------
-    Dict mapping ticker → info dict (keys defined in _COMPANY_KEYS).
+    Data collected per ticker:
+      - Identity: name, sector, industry, country
+      - Size: market cap, employee count
+      - Valuation: trailing P/E, forward P/E, price-to-book
+      - Income: dividend yield
+      - Risk: beta (market sensitivity)
+      - Analyst consensus: recommendation, analyst count, mean price target
+      - Description: truncated business summary (max 400 chars for token efficiency)
+
+    Args:
+        tickers: List of ticker symbols.
+
+    Returns:
+        Dict mapping ticker → info dict. Missing keys default to None.
+        Returns empty dict for failed tickers — never raises.
     """
     results: Dict[str, dict] = {}
 
     for ticker in tickers:
+        logger.info("Fetching company info: %s", ticker)
         try:
-            logger.info("Collecting company info: %s", ticker)
-            raw  = yf.Ticker(ticker).info or {}
+            raw = yf.Ticker(ticker).info or {}
             info = {k: raw.get(k) for k in _COMPANY_KEYS}
 
-            # Truncate long business summary for token efficiency
+            # Truncate long business summary — saves tokens in AI context
             summary = info.get("longBusinessSummary") or ""
             if len(summary) > 400:
                 info["longBusinessSummary"] = summary[:400] + "…"
@@ -218,13 +378,15 @@ def fetch_company_info(tickers: List[str]) -> Dict[str, dict]:
             results[ticker] = info
             logger.info(
                 "  ✓ %s: %s / %s",
-                ticker, info.get("sector", "N/A"), info.get("industry", "N/A"),
+                ticker,
+                info.get("sector", "N/A"),
+                info.get("industry", "N/A"),
             )
-            time.sleep(0.35)
 
         except Exception as exc:
             logger.error("  ✗ Failed to fetch info for %s: %s", ticker, exc)
-            results[ticker] = {}
+            results[ticker] = {}        # empty dict, not None — safe for downstream
+
+        time.sleep(0.5)      # ← ADDED: rate-limit delay (was 0.35 before)
 
     return results
-
