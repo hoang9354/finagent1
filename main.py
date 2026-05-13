@@ -211,6 +211,7 @@ def phase_ai_analysis(
         elapsed = time.time() - t0
         _check(f"Markdown report → {os.path.basename(result.get('md',   ''))}")
         _check(f"Word report     → {os.path.basename(result.get('docx', ''))}  ({elapsed:.1f}s)")
+        _check(f"PowerPoint deck → {os.path.basename(result.get('pptx', ''))}")
     else:
         _warn("AI analysis returned no output.")
 
@@ -229,6 +230,7 @@ def print_summary(cleaned: dict, charts: dict, result, total_elapsed: float, run
     if result:
         print(f"  AI report (md)  : {result.get('md',   '(none)')}")
         print(f"  AI report (docx): {result.get('docx', '(none)')}")
+        print(f"  AI slides (pptx): {result.get('pptx', '(none)')}")
     else:
         print("  AI report       : (not generated — see Phase 4 output)")
 
