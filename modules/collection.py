@@ -19,7 +19,26 @@ import pandas as pd
 import yfinance as yf
 
 logger = logging.getLogger(__name__)
-
+def with_retry(max_attempts: int = 3, backoff_base: float = 2.0, exceptions=(Exception,)):
+    """Decorator: retries fn up to max_attempts with exponential backoff."""
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_attempts):
+                try:
+                    return fn(*args, **kwargs)
+                except exceptions as e:
+                    wait = backoff_base ** attempt
+                    logger.warning(
+                        f"{fn.__name__} failed (attempt {attempt+1}/{max_attempts}): {e}. "
+                        f"Retrying in {wait:.1f}s..."
+                    )
+                    if attempt == max_attempts - 1:
+                        logger.error(f"{fn.__name__} permanently failed after {max_attempts} attempts.")
+                        raise
+                    time.sleep(wait)
+        return wrapper
+    return decorator
 # Keys to extract from yfinance Ticker.info
 _COMPANY_KEYS = [
     "longName", "sector", "industry", "country", "city", "state",
@@ -39,7 +58,7 @@ def _strip_timezone(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ─── Stock Prices ─────────────────────────────────────────────────────────────
-
+@with_retry(max_attempts=3, backoff_base=2.0)
 def fetch_stock_data(
     tickers: List[str],
     period: str = "1y",
@@ -71,7 +90,7 @@ def fetch_stock_data(
             if df.empty:
                 logger.warning("  ✗ %s returned no data — skipping.", ticker)
                 continue
-
+            time.sleep(0.5) #Rate-limit courtesy to Yahoo Finance
             df = _strip_timezone(df)
             keep = [c for c in ["Open", "High", "Low", "Close", "Volume"] if c in df.columns]
             df = df[keep]
@@ -208,3 +227,4 @@ def fetch_company_info(tickers: List[str]) -> Dict[str, dict]:
             results[ticker] = {}
 
     return results
+
