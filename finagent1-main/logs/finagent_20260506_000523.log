@@ -1,0 +1,52 @@
+00:05:26  INFO      Collecting stock data: AAPL
+00:05:30  INFO        ✓ AAPL: 252 rows  [2025-05-05 → 2026-05-05]
+00:05:30  INFO      Collecting stock data: MSFT
+00:05:30  INFO        ✓ MSFT: 252 rows  [2025-05-05 → 2026-05-05]
+00:05:31  INFO      Collecting stock data: NVDA
+00:05:31  INFO        ✓ NVDA: 252 rows  [2025-05-05 → 2026-05-05]
+00:05:31  INFO      Collecting stock data: GOOGL
+00:05:31  INFO        ✓ GOOGL: 252 rows  [2025-05-05 → 2026-05-05]
+00:05:32  INFO      Collecting macro data: Gold (GC=F)
+00:05:32  INFO        ✓ Gold: 253 rows
+00:05:32  INFO      Collecting macro data: Oil_WTI (CL=F)
+00:05:32  INFO        ✓ Oil_WTI: 253 rows
+00:05:33  INFO      Collecting macro data: USD_EUR (EURUSD=X)
+00:05:33  INFO        ✓ USD_EUR: 260 rows
+00:05:33  INFO      Collecting news: AAPL
+00:05:34  INFO        ✓ AAPL: 5 headlines
+00:05:34  INFO      Collecting news: MSFT
+00:05:34  INFO        ✓ MSFT: 5 headlines
+00:05:35  INFO      Collecting news: NVDA
+00:05:35  INFO        ✓ NVDA: 5 headlines
+00:05:35  INFO      Collecting news: GOOGL
+00:05:35  INFO        ✓ GOOGL: 5 headlines
+00:05:35  INFO      Collecting company info: AAPL
+00:05:36  INFO        ✓ AAPL: Technology / Consumer Electronics
+00:05:36  INFO      Collecting company info: MSFT
+00:05:36  INFO        ✓ MSFT: Technology / Software - Infrastructure
+00:05:36  INFO      Collecting company info: NVDA
+00:05:37  INFO        ✓ NVDA: Technology / Semiconductors
+00:05:37  INFO      Collecting company info: GOOGL
+00:05:37  INFO        ✓ GOOGL: Communication Services / Internet Content & Information
+00:05:37  INFO      Cleaning: AAPL
+00:05:38  INFO        AAPL: filled 0 missing values
+00:05:38  INFO        AAPL: flagged 3 outliers in Daily_Return (|z| > 3.0)
+00:05:38  INFO        AAPL: ✓ cleaned  (252 rows, 14 cols)
+00:05:38  INFO        Saved cleaned → C:\Users\Giang\Downloads\finagent1-main\finagent1-main\data\processed\AAPL_clean.csv
+00:05:38  INFO      Cleaning: MSFT
+00:05:38  INFO        MSFT: filled 0 missing values
+00:05:38  INFO        MSFT: flagged 3 outliers in Daily_Return (|z| > 3.0)
+00:05:38  INFO        MSFT: ✓ cleaned  (252 rows, 14 cols)
+00:05:38  INFO        Saved cleaned → C:\Users\Giang\Downloads\finagent1-main\finagent1-main\data\processed\MSFT_clean.csv
+00:05:38  INFO      Cleaning: NVDA
+00:05:38  INFO        NVDA: filled 0 missing values
+00:05:38  INFO        NVDA: flagged 1 outliers in Daily_Return (|z| > 3.0)
+00:05:38  INFO        NVDA: ✓ cleaned  (252 rows, 14 cols)
+00:05:38  INFO        Saved cleaned → C:\Users\Giang\Downloads\finagent1-main\finagent1-main\data\processed\NVDA_clean.csv
+00:05:38  INFO      Cleaning: GOOGL
+00:05:38  INFO        GOOGL: filled 0 missing values
+00:05:38  INFO        GOOGL: flagged 4 outliers in Daily_Return (|z| > 3.0)
+00:05:38  INFO        GOOGL: ✓ cleaned  (252 rows, 14 cols)
+00:05:38  INFO        Saved cleaned → C:\Users\Giang\Downloads\finagent1-main\finagent1-main\data\processed\GOOGL_clean.csv
+00:05:42  INFO        Saved chart → C:\Users\Giang\Downloads\finagent1-main\finagent1-main\outputs\charts\20260506_000526\chart1_price_volume.png
+00:05:42  INFO        Saved chart → C:\Users\Giang\Downloads\finagent1-main\finagent1-main\outputs\charts\20260506_000526\chart2_correlation_heatmap.png
